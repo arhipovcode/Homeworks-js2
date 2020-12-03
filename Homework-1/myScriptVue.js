@@ -1,4 +1,6 @@
 const productApi = 'https://raw.githubusercontent.com/GeekBrainsTutorial/online-store-api/master/responses/';
+const myprdct = 'https://raw.githubusercontent.com/arhipovcode/productJson/main/product.json';
+
 const products= [
   {id: 1, title: 'Телевизор Samsung', price: 2000, img: 'http://placehold.it/350x300', quantity: 1},
   {id: 2, title: 'Iphone 12', price: 4000, img: 'http://placehold.it/350x300', quantity: 1},
@@ -15,6 +17,7 @@ const app = new Vue({
     imgProduct: 'http://placehold.it/350x300',
     imgCartProduct: 'http://placehold.it/50x50',
     goods: [],
+    myGoods: [],
     filteredGoods: [],
     cartItems: [],
     searchLine: '',
@@ -41,29 +44,46 @@ const app = new Vue({
     addProductCart(product) {
       let findElem = this.cartItems.find(elem => elem.id_product === product.id_product);
       if(findElem) {
-        product.quantity++;
+        findElem.quantity++;
       } else {
-        let cartGood = Object.assign(product);
+        let cartGood = {...product};
         this.cartItems.push(cartGood);
       }
     },
-    // Метод фильтрует товар, когда пользователь ищет необходимый товар
-    filter() {
-      
+    // Метод удаляет товар из корзины
+    remove(product, index) {
+      if(product.quantity > 1) {
+        product.quantity--;
+      } else {
+        this.cartItems.splice(index, 1);
+      }
     },
+    // Метод фильтрует товар, когда пользователь ищет необходимый товар
+    filter(value) {
+      let regexp = new RegExp(value, 'gi');
+      this.filteredGoods = this.goods.filter(name => regexp.test(name.product_name));
+    },
+    
+  },
+
+  computed: {
     // Метод считает общую сумму товаров в корзине
     getTotalSum() {
-      
+      return this.cartItems.reduce((val, elem) => {
+        return val + elem.quantity * elem.price;
+      }, 0);
     },
   },
 
   mounted() {
     this.getJson(`${productApi + this.catalogs}`)
         .then(data => {
+          console.log(data)
           for(let el of data) {
-            let prod = Object.assign({quantity: 1}, el);
+            let prod = Object.assign({num: 1}, el);
             this.goods.push(prod);
           }
+          this.filteredGoods = this.goods;
         });
   },
 });
